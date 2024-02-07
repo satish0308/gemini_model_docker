@@ -1,0 +1,6 @@
+streamlit
+PathLib
+IPython
+PyPDF2
+google.generativeai
+python-dotenv
