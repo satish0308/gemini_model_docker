@@ -1,0 +1,51 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy container app to Azure Web App - godfather0308
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to registry
+      uses: docker/login-action@v2
+      with:
+        registry: https://godfather0308.azurecr.io/
+        username: ${{ secrets.AzureAppService_ContainerUsername_e007145346074d0e93eea6d3a50b3cf0 }}
+        password: ${{ secrets.AzureAppService_ContainerPassword_2e6d464ad7cd42fc90072be1dd99a312 }}
+
+    - name: Build and push container image to registry
+      uses: docker/build-push-action@v3
+      with:
+        push: true
+        tags: godfather0308.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_e007145346074d0e93eea6d3a50b3cf0 }}/geminiv3:${{ github.sha }}
+        file: ./Dockerfile
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'production'
+      url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
+
+    steps:
+    - name: Deploy to Azure Web App
+      id: deploy-to-webapp
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'godfather0308'
+        slot-name: 'production'
+        publish-profile: ${{ secrets.AzureAppService_PublishProfile_add4bdcf3870495aa62fe5845350e791 }}
+        images: 'godfather0308.azurecr.io/${{ secrets.AzureAppService_ContainerUsername_e007145346074d0e93eea6d3a50b3cf0 }}/geminiv3:${{ github.sha }}'
